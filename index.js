@@ -43,48 +43,48 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const serviceCollection = client.db('clean-co').collection('services')
-    const bookingCollection = client.db('clean-co').collection('bookings')
+    const menuCollection = client.db('crystal').collection('menus')
+    const cartCollection = client.db('crystal').collection('cart')
 
 
     //services
     app.get("/api/v1/services", async (req, res) => {
-      const services = await serviceCollection.find().toArray();
-      res.send(services);
+      // const services = await serviceCollection.find().toArray();
+      // res.send(services);
     });
 
 
     //booking
     app.post('/api/v1/user/create-booking',async(req,res)=>{
-      try {
-        const booking = await bookingCollection.insertOne(req.body)
-        res.send(booking)
-      }catch(err) {
-        console.log(err);
-      }
+      // try {
+      //   const booking = await bookingCollection.insertOne(req.body)
+      //   res.send(booking)
+      // }catch(err) {
+      //   console.log(err);
+      // }
     })
 
     app.delete('/api/v1/user/cancel-booking/:id',async(req,res)=>{
-      try {
-        const id = {_id: new ObjectId(req.params.id)}
+      // try {
+      //   const id = {_id: new ObjectId(req.params.id)}
 
-        const result = await bookingCollection.deleteOne(id)
-        res.send(result)
-      }catch(err) {
-        console.log(err);
-      }
+      //   const result = await bookingCollection.deleteOne(id)
+      //   res.send(result)
+      // }catch(err) {
+      //   console.log(err);
+      // }
     })
 
     //auth 
     app.post('/api/v1/auth/access-token',async(req,res)=>{
-        const user = req.body
-        const token = jwt.sign(user, process.env.SECRET,{expiresIn:'10hrs'})
+        // const user = req.body
+        // const token = jwt.sign(user, process.env.SECRET,{expiresIn:'10hrs'})
 
-        res.cookie('token',token,{
-            httpOnly:true,
-            secure:false,
-            sameSite:'none',
-        }).send({secret:'success'})
+        // res.cookie('token',token,{
+        //     httpOnly:true,
+        //     secure:false,
+        //     sameSite:'none',
+        // }).send({secret:'success'})
     })
 
     // Send a ping to confirm a successful connection
