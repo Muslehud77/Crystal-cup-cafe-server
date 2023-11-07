@@ -1,5 +1,7 @@
 const express = require("express");
+const cors = require("cors");
 require('dotenv').config()
+const bodyParser = require("body-parser");
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cookieParser = require("cookie-parser");
@@ -8,9 +10,19 @@ const jwt = require("jsonwebtoken");
 
 
 // middleware
-app.use(express.json())
-app.use(cookieParser())
+app.use(express.json({limit:'50mb'}))
+app.use(express.urlencoded({ limit: "50mb" }));
 
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+
+app.use(cookieParser())
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 
 
 const verifyToken = (req, res, next) => {
@@ -43,15 +55,36 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const menuCollection = client.db('crystal').collection('menus')
+    const menuCollection = client.db('crystal').collection('menu')
     const cartCollection = client.db('crystal').collection('cart')
 
 
-    //services
-    app.get("/api/v1/services", async (req, res) => {
-      // const services = await serviceCollection.find().toArray();
-      // res.send(services);
+    app.get("/api/v1/best-selling", async (req, res) => {
+      try{
+        const options = {
+          projection:{_id:1,name:1,image:1,price_BTD:1,category:1,color:1}
+        }
+        const result = await menuCollection.find({},options).sort({ sellingCount:-1 }).limit(6).toArray()
+        // const result = await menuCollection.find().toArray()
+        res.send(result);
+      }catch(err){
+        console.log(err)
+
+      }
     });
+
+    app.post("/api/v1/add-product", async (req, res) => {
+
+      try{
+        const data = await menuCollection.insertOne(req.body)
+        res.send(data);
+
+      }catch(err){
+        console.log(err);
+      }
+
+    });
+
 
 
     //booking
