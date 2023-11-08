@@ -84,6 +84,19 @@ async function run() {
       }
 
     });
+    app.patch("/api/v1/edit-product", async (req, res) => {
+
+      try{
+        const data = req.body
+        const id = {_id: new ObjectId(data._id)}
+        const result = await menuCollection.updateOne(id,{$set: {quantity:data.quantity}})
+        res.send(result)
+
+      }catch(err){
+        console.log(err);
+      }
+
+    });
 
 
     app.get("/api/v1/menu", async (req, res) => {
@@ -131,6 +144,29 @@ async function run() {
 
     });
 
+
+
+    app.get('/api/v1/menu/item-details/:id',async(req,res)=>{
+      try{
+        const id = req.params.id;
+        const result = await menuCollection.findOne({_id:new ObjectId(id)})
+        res.send(result)
+
+      }catch(err){}
+    })
+
+
+
+    app.post('/api/v1/add-cart',async(req,res)=>{
+      try{
+
+        const data = req.body
+        console.log(req.body)
+        const result = await cartCollection.insertOne(data)
+        res.send(result)
+
+      }catch(err){}
+    })
 
 
     //booking
