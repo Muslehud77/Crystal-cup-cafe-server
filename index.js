@@ -65,7 +65,7 @@ async function run() {
           projection:{_id:1,name:1,image:1,price_BTD:1,category:1,color:1}
         }
         const result = await menuCollection.find({},options).sort({ sellingCount:-1 }).limit(6).toArray()
-        // const result = await menuCollection.find().toArray()
+       
         res.send(result);
       }catch(err){
         console.log(err)
@@ -78,6 +78,52 @@ async function run() {
       try{
         const data = await menuCollection.insertOne(req.body)
         res.send(data);
+
+      }catch(err){
+        console.log(err);
+      }
+
+    });
+
+
+    app.get("/api/v1/menu", async (req, res) => {
+
+      try{
+        const page = parseInt(req.query.page) - 1;
+        const size = parseInt(req.query.size);
+        const data = await menuCollection
+          .find()
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+        const count = await menuCollection.estimatedDocumentCount();
+        res.send({data,count});
+
+      }catch(err){
+        console.log(err);
+      }
+
+    });
+   
+    app.get("/api/v1/menu/:id", async (req, res) => {
+
+      try{
+
+        const page = parseInt(req.query.page) - 1;
+        const size = parseInt(req.query.size);
+        
+         let query = req.params.id;
+        if(query==='Ice-Cream'){
+          query = 'Ice Cream'
+        }
+        console.log(query)
+        const data = await menuCollection
+          .find({ category: query })
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+        const count = await menuCollection.estimatedDocumentCount();
+        res.send({data,count});
 
       }catch(err){
         console.log(err);
@@ -138,9 +184,9 @@ run().catch(console.dir);
 
 
 app.get("/", (req, res) => {
-  res.send(`clean co server is running at ${port}`);
+  res.send(`crystal cup server is running at ${port}`);
 });
 
 app.listen(port, () => {
-  console.log(`clean co is listening on port ${port}`);
+  console.log(`crystal cup is listening on port ${port}`);
 });
