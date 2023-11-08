@@ -122,8 +122,8 @@ async function run() {
           .skip(page * size)
           .limit(size)
           .toArray();
-        const count = await menuCollection.estimatedDocumentCount();
-        res.send({data,count});
+         const c = await menuCollection.find({ category: query }).toArray()
+        res.send({data,count:c.length});
 
       }catch(err){
         console.log(err);
