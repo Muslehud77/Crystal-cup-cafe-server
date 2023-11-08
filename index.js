@@ -26,10 +26,18 @@ app.use(
 
 
 const verifyToken = (req, res, next) => {
-    const cookie = req.cookie.token
-
-}
-
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized" });
+  }
+  jwt.verify(token, process.env.SECRET, async (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unauthorized access" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
 
 
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.q9bdeff.mongodb.net/clean-co?retryWrites=true&w=majority`;
@@ -58,6 +66,24 @@ async function run() {
     const menuCollection = client.db('crystal').collection('menu')
     const cartCollection = client.db('crystal').collection('cart')
 
+    
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      // console.log('user from req: ',user)
+      const token = jwt.sign(user, process.env.SECRET, {
+        expiresIn: "1hr",
+      });
+      if (req.cookies?.token) {
+        return;
+      }
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+        })
+        .send({ success: true });
+    });
 
     app.get("/api/v1/best-selling", async (req, res) => {
       try{
@@ -84,8 +110,10 @@ async function run() {
       }
 
     });
-    app.patch("/api/v1/edit-product", async (req, res) => {
-
+    app.patch("/api/v1/edit-product",verifyToken, async (req, res) => {
+       if (req.params.email !== req.user.email) {
+         return res.status(403).send({ message: "access forbidden" });
+       }
       try{
         const data = req.body
         const id = {_id: new ObjectId(data._id)}
@@ -159,6 +187,17 @@ async function run() {
       }catch(err){}
     
     })
+
+
+    app.patch("/api/v1/modify/:id",async(req,res)=>{
+      try{
+        const id ={_id: new ObjectId(req.params.id)};
+        console.log(id)
+        const data = req.body
+        const result = await menuCollection.updateOne(id,{$set:data});
+        res.send(result);
+      }catch(err){}
+    });
 
 
       app.get(
