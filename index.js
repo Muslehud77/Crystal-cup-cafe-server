@@ -145,6 +145,49 @@ async function run() {
     });
 
 
+      app.get("/api/v1/manage", async (req, res) => {
+
+      try{
+        const user = req.query.email
+        if(user){
+          const result = await menuCollection
+            .find({ addedBy: user })
+            .toArray();
+            res.send(result);
+        }
+
+      }catch(err){}
+    
+    })
+
+
+      app.get(
+        "/api/v1/manage/edit-item/:id/:email",
+        async (req, res) => {
+          try {
+            const id = req.params.id;
+            const user = req.params.email;
+            console.log(id,user)
+            if(user){
+              const result = await menuCollection.findOne({
+                _id: new ObjectId(id),
+              });
+              res.send(result);
+            }
+             
+          } catch (err) {}
+        }
+      );
+
+    app.delete("/api/v1/menu/:id", async (req, res) => {
+      try {
+        const id = { _id: new ObjectId(req.params.id) };
+        console.log(id);
+        const result = await menuCollection.deleteOne(id);
+        res.send(result);
+      } catch (err) {}
+    });
+
 
     app.get('/api/v1/menu/item-details/:id',async(req,res)=>{
       try{
@@ -164,6 +207,27 @@ async function run() {
         console.log(req.body)
         const result = await cartCollection.insertOne(data)
         res.send(result)
+
+      }catch(err){}
+    })
+
+
+    app.get('/api/v1/cart',async(req,res)=>{
+      try{
+
+       const email = req.query.email
+       const result = await cartCollection.find({email: email}).toArray();
+       res.send(result)
+
+      }catch(err){}
+    })
+    app.delete('/api/v1/cart/:id',async(req,res)=>{
+      try{
+
+       const id = {_id:new ObjectId(req.params.id)}
+       console.log(id)
+       const result = await cartCollection.deleteOne(id)
+       res.send(result)
 
       }catch(err){}
     })
