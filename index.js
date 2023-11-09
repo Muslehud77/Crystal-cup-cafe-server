@@ -42,6 +42,33 @@ const verifyToken = (req, res, next) => {
 };
 
 
+// res.cookie(
+//     "token",
+//     tokenValue,
+//     {
+//         httpOnly: true,
+//         secure: process.env.NODE_ENV === "production" ? true: false,
+//         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+//     }
+// )
+
+
+// res.clearCookie(
+//     "token",
+//     {
+//         maxAge: 0,
+//         secure: process.env.NODE_ENV === "production" ? true: false,
+//         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+//     }
+// )
+
+
+
+
+
+
+
+
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.q9bdeff.mongodb.net/clean-co?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -81,8 +108,8 @@ async function run() {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: true,
-          sameSite: "none",
+          secure: process.env.NODE_ENV === "production" ? true : false,
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
     });
@@ -252,7 +279,13 @@ async function run() {
 
       app.post("/logout", async (req, res) => {
         console.log("logging out user: ", req.body);
-        res.clearCookie("token", { maxAge: 0 }).send({ successLogout: true });
+        res
+          .clearCookie("token", {
+            maxAge: 0,
+            secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          })
+          .send({ successLogout: true });
       });
 
 
