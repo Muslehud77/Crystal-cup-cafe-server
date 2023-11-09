@@ -23,6 +23,8 @@ app.use(
     credentials: true,
   })
 );
+//  ["http://localhost:5173"],
+// ["https://crystal-cup.web.app"]
 // , "https://crystal-cup.web.app"
 
 const verifyToken = (req, res, next) => {
@@ -179,11 +181,9 @@ async function run() {
          }
       try{
         const user = req.query.email
-        if(user){
-          const result = await menuCollection
-            .find({ addedBy: user })
-            .toArray();
-            res.send(result);
+        if (req.query.email === req.user.email) {
+          const result = await menuCollection.find({ addedBy: user }).toArray();
+          res.send(result);
         }
 
       }catch(err){}
