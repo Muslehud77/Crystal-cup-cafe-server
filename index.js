@@ -19,11 +19,11 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser())
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["https://crystal-cup.web.app"],
     credentials: true,
   })
 );
-
+// , "https://crystal-cup.web.app"
 
 const verifyToken = (req, res, next) => {
   const token = req.cookies?.token;
@@ -61,7 +61,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const menuCollection = client.db('crystal').collection('menu')
     const cartCollection = client.db('crystal').collection('cart')
@@ -173,8 +173,10 @@ async function run() {
     });
 
 
-      app.get("/api/v1/manage", async (req, res) => {
-
+      app.get("/api/v1/manage",verifyToken, async (req, res) => {
+         if (req.query.email !== req.user.email) {
+           return res.status(403).send({ message: "access forbidden" });
+         }
       try{
         const user = req.query.email
         if(user){
@@ -189,7 +191,7 @@ async function run() {
     })
 
 
-    app.patch("/api/v1/modify/:id",async(req,res)=>{
+    app.patch("/api/v1/modify/:id",verifyToken,async(req,res)=>{
       try{
         const id ={_id: new ObjectId(req.params.id)};
         console.log(id)
@@ -201,18 +203,16 @@ async function run() {
 
 
       app.get(
-        "/api/v1/manage/edit-item/:id/:email",
+        "/api/v1/manage/edit-item/:id",
         async (req, res) => {
+          
           try {
             const id = req.params.id;
-            const user = req.params.email;
-            console.log(id,user)
-            if(user){
-              const result = await menuCollection.findOne({
-                _id: new ObjectId(id),
-              });
-              res.send(result);
-            }
+           
+           const result = await menuCollection.findOne({
+             _id: new ObjectId(id),
+           });
+           res.send(result);
              
           } catch (err) {}
         }
@@ -250,6 +250,12 @@ async function run() {
       }catch(err){}
     })
 
+      app.post("/logout", async (req, res) => {
+        console.log("logging out user: ", req.body);
+        res.clearCookie("token", { maxAge: 0 }).send({ successLogout: true });
+      });
+
+
 
     app.get('/api/v1/cart',async(req,res)=>{
       try{
@@ -272,41 +278,12 @@ async function run() {
     })
 
 
-    //booking
-    app.post('/api/v1/user/create-booking',async(req,res)=>{
-      // try {
-      //   const booking = await bookingCollection.insertOne(req.body)
-      //   res.send(booking)
-      // }catch(err) {
-      //   console.log(err);
-      // }
-    })
+ 
 
-    app.delete('/api/v1/user/cancel-booking/:id',async(req,res)=>{
-      // try {
-      //   const id = {_id: new ObjectId(req.params.id)}
-
-      //   const result = await bookingCollection.deleteOne(id)
-      //   res.send(result)
-      // }catch(err) {
-      //   console.log(err);
-      // }
-    })
-
-    //auth 
-    app.post('/api/v1/auth/access-token',async(req,res)=>{
-        // const user = req.body
-        // const token = jwt.sign(user, process.env.SECRET,{expiresIn:'10hrs'})
-
-        // res.cookie('token',token,{
-        //     httpOnly:true,
-        //     secure:false,
-        //     sameSite:'none',
-        // }).send({secret:'success'})
-    })
+  
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
